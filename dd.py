@@ -157,9 +157,12 @@ class DotDancer(Game):
             self.dots_generated += 1
 
     def quit(self):
-        print
-        print 'dots_generated: {}, times_hit: {}, times_missed:{}'.format(
-                self.dots_generated, self.times_hit, self.times_missed)
+        sys.stdout.write(('\ndots_generated: {}\n\r'
+                          'times_hit: {}\n\r'
+                          'times_missed:{}\n\r').format(
+                self.dots_generated, 
+                self.times_hit, 
+                self.times_missed))
 
 def getch():
     # http://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user
@@ -175,6 +178,7 @@ def getch():
 def tick(signum, frame, game):
     global char
     if char == 'q':
+        signal.setitimer(signal.ITIMER_REAL, 0, 0)
         game.quit()
         exit(0)
     elif char == 'h':
