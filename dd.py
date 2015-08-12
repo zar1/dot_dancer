@@ -159,10 +159,14 @@ class DotDancer(Game):
     def quit(self):
         sys.stdout.write(('\ndots_generated: {}\n\r'
                           'times_hit: {}\n\r'
-                          'times_missed:{}\n\r').format(
+                          'times_missed: {}\n\r'
+                          'precision: {}\n\r'
+                          'recall: {}\n\r').format(
                 self.dots_generated, 
                 self.times_hit, 
-                self.times_missed))
+                self.times_missed,
+                float(self.times_hit) / (self.times_hit + self.times_missed),
+                float(self.times_hit) / self.dots_generated))
 
 def getch():
     # http://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user
