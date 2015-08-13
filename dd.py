@@ -11,6 +11,7 @@ import abc
 DOT_SPEED = 4
 PLAYER_SPEED = 2
 EFFECT_SPEED = 8
+DOT_PROB = .02
 
 char = ''
 
@@ -41,7 +42,8 @@ class Game(object):
         pass
 
 class Dot(object):
-    def __init__(self, momentum, pos, sink, speed, dots, dots_by_pos):
+    def __init__(self, momentum, pos, sink, speed, dots, dots_by_pos, 
+                 report_loss):
         self.momentum = momentum
         self.pos = pos
         self.dots = dots
@@ -51,6 +53,7 @@ class Dot(object):
         self.dots_by_pos = dots_by_pos
         self.dots_by_pos[self.pos].append(self)
         self.turns_to_move = speed
+        self.report_loss = report_loss
 
     def update(self):
         if self.turns_to_move > 0:
@@ -60,6 +63,7 @@ class Dot(object):
         self.pos += self.momentum
         self.dots_by_pos[self.pos].append(self)
         if self.pos == self.sink:
+            self.report_loss()
             self.die()
             return
         self.turns_to_move = self.speed
@@ -81,6 +85,7 @@ class DotDancer(Game):
         self.times_hit = 0
         self.times_missed = 0
         self.dots_generated = 0
+        self.dots_lost = 0
     def get_board(self):
         board = [' '] * 80
         board[self.pos] = '@'
@@ -105,8 +110,9 @@ class DotDancer(Game):
     def move_right(self):
         self.gear = 1
         self.reset_to_neutral = PLAYER_SPEED
+    def __report_loss(self):
+        self.dots_lost += 1
     def tick(self):
-        # TODO UPDATE HIT AND MISS
         # hit right
         if self.gear == 1 and self.dots_by_pos[self.pos + 1]:
             self.hit = 1
@@ -147,26 +153,47 @@ class DotDancer(Game):
             self.miss = 0
         else:
             self.reset_to_no_effect -= 1
+
+        # Move dots
         for dot in self.dots:
             dot.update()
-        if random() < .01:
-            Dot(1, 0, self.pos, DOT_SPEED, self.dots, self.dots_by_pos)
+
+        # Generate new dots
+        gen_left = False
+        gen_right = False
+        if random() < DOT_PROB:
+            gen_left = True
+        if random() < DOT_PROB:
+            gen_right = True
+        # Don't generate two dots at once
+        if gen_left and gen_right:
+            if random() < .50:
+                gen_left = False
+            else:
+                gen_right = False
+        if gen_left:
+            Dot(1, 0, self.pos, DOT_SPEED, self.dots, self.dots_by_pos,
+                self.__report_loss)
             self.dots_generated += 1
-        elif random() < .01:
-            Dot(-1, 79, self.pos, DOT_SPEED, self.dots, self.dots_by_pos)
+        elif gen_right:
+            Dot(-1, 79, self.pos, DOT_SPEED, self.dots, self.dots_by_pos,
+                self.__report_loss)
             self.dots_generated += 1
 
     def quit(self):
-        sys.stdout.write(('\ndots_generated: {}\n\r'
+        dots_retired = self.times_hit + self.times_missed + self.dots_lost
+        sys.stdout.write(('\ndots_retired: {}\n\r'
                           'times_hit: {}\n\r'
                           'times_missed: {}\n\r'
+                          'dots_lost: {}\n\r'
                           'precision: {}\n\r'
                           'recall: {}\n\r').format(
-                self.dots_generated, 
+                dots_retired, 
                 self.times_hit, 
                 self.times_missed,
+                self.dots_lost,
                 float(self.times_hit) / (self.times_hit + self.times_missed),
-                float(self.times_hit) / self.dots_generated))
+                float(self.times_hit) / dots_retired))
 
 def getch():
     # http://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user
