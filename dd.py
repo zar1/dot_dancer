@@ -172,16 +172,25 @@ class DotDancer(Game):
             else:
                 gen_right = False
         if gen_left:
-            Dot(1, 0, self.pos, DOT_SPEED, self.dots, self.dots_by_pos,
-                self.__report_loss)
+            Dot(1, self.pos-39, self.pos, DOT_SPEED, self.dots, 
+                self.dots_by_pos, self.__report_loss)
             self.dots_generated += 1
         elif gen_right:
-            Dot(-1, 79, self.pos, DOT_SPEED, self.dots, self.dots_by_pos,
-                self.__report_loss)
+            Dot(-1, self.pos+39, self.pos, DOT_SPEED, self.dots, 
+                self.dots_by_pos, self.__report_loss)
             self.dots_generated += 1
 
     def quit(self):
         dots_retired = self.times_hit + self.times_missed + self.dots_lost
+        if self.times_hit + self.times_missed == 0:
+            precision = '?'
+        else:
+            precision = float(self.times_hit) / (self.times_hit + 
+                                                 self.times_missed)
+        if dots_retired == 0:
+            recall = '?'
+        else:
+            recall = float(self.times_hit) / dots_retired
         sys.stdout.write(('\ndots_retired: {}\n\r'
                           'times_hit: {}\n\r'
                           'times_missed: {}\n\r'
@@ -192,8 +201,8 @@ class DotDancer(Game):
                 self.times_hit, 
                 self.times_missed,
                 self.dots_lost,
-                float(self.times_hit) / (self.times_hit + self.times_missed),
-                float(self.times_hit) / dots_retired))
+                precision,
+                recall))
 
 def getch():
     # http://stackoverflow.com/questions/510357/python-read-a-single-character-from-the-user
