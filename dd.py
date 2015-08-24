@@ -191,16 +191,16 @@ class DotDancer(Game):
             recall = '?'
         else:
             recall = float(self.times_hit) / dots_retired
-        sys.stdout.write(('\ndots_retired: {}\n\r'
-                          'times_hit: {}\n\r'
-                          'times_missed: {}\n\r'
-                          'dots_lost: {}\n\r'
+        sys.stdout.write(('\ntotal dots retired: {}\n\r'
+                          'dots hit: {}\n\r'
+                          'dots missed: {}\n\r'
+                          'superfluous steps: {}\n\r'
                           'precision: {}\n\r'
                           'recall: {}\n\r').format(
                 dots_retired, 
                 self.times_hit, 
-                self.times_missed,
                 self.dots_lost,
+                self.times_missed,
                 precision,
                 recall))
 
